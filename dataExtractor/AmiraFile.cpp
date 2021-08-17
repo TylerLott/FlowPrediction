@@ -23,10 +23,13 @@ AmiraFile::AmiraFile() {
   fread(buffer, sizeof(char), 2047, fp);
   buffer[2047] = '\0';
 
+  // print out error if not a AmiraMesh file
+  // Should probably throw an error so the function stops
   if (!strstr(buffer, "# AmiraMesh BINARY-LITTLE-ENDIAN 2.1")) {
     printf("Not a proper AmiraMesh file.\n");
     fclose(fp);
   }
+
   // get dimensions of the mesh
   sscanf(FindAndJump(buffer, "define Lattice"), "%d %d %d", &xDim, &yDim, &zDim);
   printf("Found mesh dimensions -- %d %d %d\n", xDim, yDim, zDim);
@@ -52,7 +55,8 @@ AmiraFile::AmiraFile() {
     printf("Something went wrong\n");
     fclose(fp);
   }
-
+  
+  // find the start of the actual data
   const long idxStartData = strstr(buffer, "# Data section follows") - buffer;
   if (idxStartData > 0) {
     fseek(fp, idxStartData, SEEK_SET);
@@ -60,6 +64,7 @@ AmiraFile::AmiraFile() {
     fgets(buffer, 2047, fp);
 
     if (pData) {
+      // determine how much to read and read it
       const size_t NumToRead = xDim * yDim * zDim * numComp;
       pData = new float[NumToRead];
       const size_t ActRead = fread((void*)pData, sizeof(float), NumToRead, fp);

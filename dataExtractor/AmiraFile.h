@@ -11,6 +11,8 @@ class AmiraFile {
     //constructor with filepath input
     AmiraFile(); 
     float* nextTimestep();
+    float* generatePts();
+    float* generateNextPts();
 
   private:
     int xDim, yDim, zDim;

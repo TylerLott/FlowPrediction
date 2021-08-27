@@ -1,26 +1,25 @@
 // AmiraFile, contains the mesh of the flow field for each timestep of the simulation
-//
 
 #pragma once
 
 #include <iostream>
+#include <vector>
 
 class AmiraFile {
   // class stuff here
   public:
     //constructor with filepath input
     AmiraFile(); 
-    float* nextTimestep();
-    float* generatePts();
-    float* generateNextPts();
+    std::vector<float> nextTimestep();
+    void saveTimestep();
+    int stepSize();
+    int xDim, yDim, zDim, numComp;
 
   private:
-    int xDim, yDim, zDim;
     float xmin, xmax, ymin, ymax, zmin, zmax;
-    int numComp;
     int idx = 0;
     float* pData;
-
+    
 
 };
 

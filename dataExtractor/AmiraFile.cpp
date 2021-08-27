@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-
+#include <vector>
 
 const char* FindAndJump(const char* buffer, const char* SearchString){
   const char* FoundLoc = strstr(buffer, SearchString);
@@ -12,6 +12,8 @@ const char* FindAndJump(const char* buffer, const char* SearchString){
 
 
 AmiraFile::AmiraFile() {
+  // This constructor opens the amirafile and reads all data into memory
+  //
   // Open file and check that it is found
   const char* fileName = "0000.am";
   FILE* fp = fopen(fileName, "rb");
@@ -46,7 +48,7 @@ AmiraFile::AmiraFile() {
     sscanf(FindAndJump(buffer, "Lattice { float["), "%d", &numComp);
   }
   printf("Found number of components -- %d\n", numComp);
-  
+
   //Sanity check
   if (xDim <= 0 || yDim <= 0 || zDim <= 0
       || xmin > xmax || ymin > ymax || zmin > zmax
@@ -63,27 +65,43 @@ AmiraFile::AmiraFile() {
     fgets(buffer, 2047, fp);
     fgets(buffer, 2047, fp);
 
-    if (pData) {
-      // determine how much to read and read it
-      const size_t NumToRead = xDim * yDim * zDim * numComp;
-      pData = new float[NumToRead];
-      const size_t ActRead = fread((void*)pData, sizeof(float), NumToRead, fp);
-      printf("num to read -- %ld\n", NumToRead);
-      printf("act to read -- %ld\n", ActRead);
-      if (NumToRead != ActRead) {
-        delete[] pData;
-        fclose(fp);
-        printf("Something went wrong\n");
-      }
-      for (int i = 0; i < 40; i++) {
-        printf("%f ", pData[i]);
-      }
-      printf("%f\n", pData[10]);
+    // determine how much to read and read it
+    const size_t NumToRead = xDim * yDim * zDim * numComp;
+    pData = new float[NumToRead];
+    const size_t ActRead = fread((void*)pData, sizeof(float), NumToRead, fp);
+    printf("num to read -- %ld\n", NumToRead);
+    printf("act to read -- %ld\n", ActRead);
+    if (NumToRead != ActRead) {
+      delete[] pData;
       fclose(fp);
+      printf("Something went wrong\n");
     }
   }
 }
 
-float* AmiraFile::nextTimestep(){
-  return new float[90];
+std::vector<float> AmiraFile::nextTimestep(){
+  //initialize array of timestep data
+  std::vector<float> stepData;
+  printf("size of arr - in amirafile: %d\n", xDim*yDim*numComp);
+  printf("xdim - in amirafile: %d\n", xDim);
+  // index of timestep start 
+  int k = idx * xDim * yDim * numComp;
+  if(k < numComp * xDim * yDim * zDim){
+    for(int i=0; i<xDim;i++){
+      for(int j=0;j<yDim;j++){
+        for(int c=0;c<numComp;c++){
+          stepData.push_back(pData[((idx*yDim +i) * xDim + j) * numComp+c]);
+        }
+      }
+    }
+  }
+  idx++;
+  return stepData;
+}
+void AmiraFile::saveTimestep(){
+  // save here
+  int i = 0;
+}
+int AmiraFile::stepSize(){
+  return xDim*yDim*numComp;
 }

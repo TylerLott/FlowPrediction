@@ -1,2 +1,3 @@
 *.am
 pass
+dataExtractor/processedData/
